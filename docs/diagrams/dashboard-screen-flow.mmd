@@ -1,0 +1,42 @@
+flowchart TD
+    A[Dashboard Launch] --> B{Authenticated caregiver?}
+    B -- No --> L[Login Page\nEmail + Password]
+    L -->|Valid| O[Overview]
+    L -->|Invalid| L
+
+    B -- Yes --> O
+    O --> U[Users / Linked Profiles]
+    O --> R[Routines]
+    O --> M[Medicines]
+    O --> EC[Emergency Contacts]
+    O --> SOS[SOS Alerts]
+    O --> ACT[Activity & History]
+    O --> PREF[Accessibility Preferences]
+
+    U --> U1[User List - linked only]
+    U1 --> U2[User Profile Detail]
+    U2 --> U3[Create/Edit permitted details\nManage link - authorized]
+    U2 --> PREF
+
+    R --> R1[Routine List by User]
+    R1 --> R2[Create/Edit/Delete Routine]
+    R2 --> R3[Manage Steps\nAdd/Edit/Delete/Reorder]
+    R3 --> R4[Assign to User]
+
+    M --> M1[Medicine List]
+    M1 --> M2[Add/Edit Medicine\ninstructions, dates]
+    M2 --> M3[Configure Reminders/Frequency]
+    M --> M4[Medicine History\nTaken/Skipped logs]
+
+    EC --> EC1[Contacts List per User]
+    EC1 --> EC2[Add/Edit/Delete Contact]
+    EC2 --> EC3[Set Primary Contact]
+
+    SOS --> SOS1[SOS Alert List\nreal-time/refresh from API]
+    SOS1 --> SOS2[Alert Detail\nuser,time,location/map,delivery+alert status,contact]
+    SOS2 --> SOS3[Acknowledge Alert\nrecords caregiver + time]
+
+    ACT --> ACT1[Routine Completions]
+    ACT --> ACT2[Medicine Logs]
+    ACT --> ACT3[SOS Events]
+    ACT --> ACT4[Filter/Sort Views]

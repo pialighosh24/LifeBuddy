@@ -1,0 +1,53 @@
+flowchart TD
+    A[App Launch] --> B{Authenticated user session?}
+    B -- No --> C[User Access Screen\nPIN entry - simplified]
+    C -->|Valid PIN| D[Home Screen]
+    C -->|Invalid/locked guidance| C
+
+    B -- Yes --> D
+    D --> T[TALK\nPicture Communication]
+    D --> M[MY DAY\nDaily Routines]
+    D --> MED[MEDICINE\nReminders & History]
+    D --> F[MY FEELINGS\nEmotion Communicator]
+    D --> H[HELP ME\nSituation Assistant]
+    D --> S[SOS\nEmergency]
+    D --> SET[Accessibility Settings]
+
+    T --> T1[Communication Grid\nselect tiles]
+    T1 --> T2[Selected items + generated sentence]
+    T2 --> T3[Speak via TTS / Replay / Clear]
+    T2 --> T4[Save Favourite]
+    T4 --> T5[Favourites List]
+
+    M --> M1[Routine List - cached offline capable]
+    M1 --> M2[Routine Step View\none step focused]
+    M2 --> M3[Next/Previous/Repeat Voice]
+    M2 --> M4[Mark Step Completed]
+    M4 -->|Online| M5[Persist to server]
+    M4 -->|Offline| M6[Queue pending sync\nshow pending state]
+    M2 --> M7[Progress & Completion]
+
+    MED --> MED1[Upcoming Reminders]
+    MED1 --> MED2[Reminder Detail\nname + caregiver instructions]
+    MED2 --> MED3[Taken / Skipped]
+    MED3 --> MED4[Persist to server / sync when online]
+    MED --> MED5[Medicine History]
+
+    F --> F1[Emotion Grid]
+    F1 --> F2[Message Display + Optional TTS]
+
+    H --> H1[Situation List - predefined/custom]
+    H1 --> H2[Step-by-step Guide\none step at a time]
+    H2 --> H3[Repeat / Next / Previous / Restart]
+    H2 --> H4[Progress]
+
+    S --> S1[SOS Confirmation\nConfirm or Cancel]
+    S1 -->|Cancel| D
+    S1 -->|Confirm| S2[Request/check location permission]
+    S2 --> S3[Send SOS to backend]
+    S3 -->|Success| S4[Show Alert Status\nrecord id, delivery/alert status, contact]
+    S3 -->|Offline/Failure| S5[Show honest failure\nnot transmitted/no false success]
+    S4 --> D
+
+    SET --> SET1[Language, Text size, Contrast\nSpeech rate, Voice, Reduced motion, Notifications]
+    SET1 --> D

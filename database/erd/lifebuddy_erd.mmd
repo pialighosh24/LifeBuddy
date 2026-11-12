@@ -1,0 +1,245 @@
+erDiagram
+    users ||--o| user_preferences : "has"
+    users ||--o{ caregiver_links : "is_care_user"
+    users ||--o{ caregiver_links : "is_caregiver"
+    users ||--o{ routines : "assigned"
+    users ||--o{ medicines : "assigned"
+    users ||--o{ emergency_contacts : "has"
+    users ||--o{ sos_alerts : "triggers"
+    users ||--o{ routine_completions : "completes"
+    users ||--o{ medicine_logs : "logs"
+    users ||--o{ favourite_phrases : "saves"
+    users ||--o{ device_tokens : "registers"
+    users ||--o{ activity_logs : "generates"
+
+    caregiver_links }o--|| users : "caregiver"
+    caregiver_links }o--|| users : "care_user"
+
+    routines ||--o{ routine_steps : "contains"
+    routines ||--o{ routine_completions : "tracked_by"
+    routine_steps ||--o{ routine_completions : "step_done"
+
+    medicines ||--o{ medicine_reminders : "scheduled_by"
+    medicines ||--o{ medicine_logs : "history"
+    medicine_reminders ||--o{ medicine_logs : "produces"
+
+    sos_alerts }o--o| emergency_contacts : "primary_contact"
+    sos_alerts }o--o| users : "ack_by_caregiver"
+
+    communication_items ||--o{ favourite_phrases : "referenced_by"
+
+    situation_steps }o--|| users : "optional_custom_for"
+
+    users {
+        bigint id PK
+        enum role "caregiver,user"
+        varchar email "unique, caregiver"
+        varchar password_hash "caregiver"
+        varchar pin_hash "user"
+        varchar full_name
+        varchar display_name
+        enum status "active,inactive"
+        varchar preferred_language "en,bn"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    caregiver_links {
+        bigint id PK
+        bigint caregiver_id FK
+        bigint care_user_id FK
+        enum relationship_type
+        enum link_status "active,revoked,pending"
+        bigint linked_by FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    user_preferences {
+        bigint id PK
+        bigint user_id FK "unique"
+        varchar language "en,bn"
+        enum text_size "small,medium,large,xlarge"
+        enum contrast_mode "normal,high"
+        decimal speech_rate
+        tinyint voice_enabled
+        tinyint reduced_motion
+        tinyint notifications_enabled
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    routines {
+        bigint id PK
+        bigint care_user_id FK
+        bigint created_by_caregiver_id FK
+        varchar title_en
+        varchar title_bn
+        text description_en
+        text description_bn
+        tinyint is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    routine_steps {
+        bigint id PK
+        bigint routine_id FK
+        int step_order
+        varchar instruction_en
+        varchar instruction_bn
+        varchar image_key
+        varchar audio_hint_key
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    routine_completions {
+        bigint id PK
+        bigint routine_id FK
+        bigint routine_step_id FK
+        bigint care_user_id FK
+        enum completion_status "completed,skipped,pending_sync"
+        varchar client_event_id "idempotency"
+        datetime completed_at
+        datetime synced_at
+        enum source "online,offline_sync"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    medicines {
+        bigint id PK
+        bigint care_user_id FK
+        bigint created_by_caregiver_id FK
+        varchar medicine_name
+        text prescribed_instructions
+        text notes
+        date start_date
+        date end_date
+        tinyint is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    medicine_reminders {
+        bigint id PK
+        bigint medicine_id FK
+        time reminder_time
+        enum frequency "once,daily,weekly,custom"
+        varchar days_of_week "e.g. MON,TUE"
+        tinyint is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    medicine_logs {
+        bigint id PK
+        bigint medicine_id FK
+        bigint reminder_id FK
+        bigint care_user_id FK
+        datetime scheduled_for
+        enum status "taken,skipped,missed,pending"
+        datetime responded_at
+        varchar notes
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    emergency_contacts {
+        bigint id PK
+        bigint care_user_id FK
+        varchar contact_name
+        varchar relationship_label
+        varchar phone_number
+        varchar email
+        tinyint is_primary
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    sos_alerts {
+        bigint id PK
+        bigint care_user_id FK
+        bigint emergency_contact_id FK
+        decimal latitude
+        decimal longitude
+        enum location_status "available,unavailable,denied,disabled"
+        enum alert_status "created,pending,sent,failed,acknowledged,cancelled"
+        enum delivery_status "not_applicable,pending,sent,failed,confirmed"
+        varchar delivery_channel "dashboard,expo_push,sms,email"
+        text delivery_message
+        text failure_reason
+        datetime acknowledged_at
+        bigint acknowledged_by FK
+        varchar client_event_id "idempotency"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    communication_items {
+        bigint id PK
+        varchar item_key "unique"
+        varchar category
+        varchar label_en
+        varchar label_bn
+        varchar icon_key
+        varchar speak_text_en
+        varchar speak_text_bn
+        int sort_order
+        tinyint is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    favourite_phrases {
+        bigint id PK
+        bigint care_user_id FK
+        bigint communication_item_id FK
+        json selected_item_keys
+        text phrase_en
+        text phrase_bn
+        varchar phrase_label
+        tinyint is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    situation_steps {
+        bigint id PK
+        bigint care_user_id FK "nullable custom"
+        varchar situation_key
+        varchar title_en
+        varchar title_bn
+        int step_order
+        text instruction_en
+        text instruction_bn
+        varchar image_key
+        tinyint is_predefined
+        tinyint is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    device_tokens {
+        bigint id PK
+        bigint user_id FK
+        enum platform "android,ios,web"
+        varchar expo_push_token
+        tinyint is_active
+        timestamp last_seen_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    activity_logs {
+        bigint id PK
+        bigint actor_user_id FK
+        bigint care_user_id FK
+        varchar event_type
+        varchar entity_type
+        bigint entity_id
+        varchar summary
+        json metadata_json
+        timestamp created_at
+    }
